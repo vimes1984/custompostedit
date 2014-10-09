@@ -198,7 +198,7 @@ class customPostEdit{
 	 * @since    1.0.0
 	 */
 	public function enqueue_scripts() {
-		wp_enqueue_script($this->plugin_slug . "-plugin-angular", "//ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js", array("jquery"), $this->version);
+		wp_enqueue_script($this->plugin_slug . "-plugin-angular", plugins_url("js/angular.min.js", __FILE__), array("jquery"), $this->version);
 		wp_enqueue_script($this->plugin_slug . "-plugin-script", plugins_url("js/custom-post-edit.js", __FILE__), array("jquery"), $this->version);
 	}
 
