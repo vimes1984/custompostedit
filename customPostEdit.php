@@ -79,6 +79,11 @@ class customPostEdit{
 		// Define custom functionality. Read more about actions and filters: http://codex.wordpress.org/Plugin_API#Hooks.2C_Actions_and_Filters
 		add_action("TODO", array($this, "action_method_name"));
 		add_filter("TODO", array($this, "filter_method_name"));
+		//Shortcode
+		add_shortcode( 'post_edit', array($this, 'post_edit'));
+		//ajax post edit
+		add_action( 'wp_ajax_post_edit_fac', array($this,  'post_edit_fac') );
+
 
 	}
 
@@ -193,8 +198,8 @@ class customPostEdit{
 	 * @since    1.0.0
 	 */
 	public function enqueue_scripts() {
-		wp_enqueue_script($this->plugin_slug . "-plugin-script", plugins_url("js/public.js", __FILE__), array("jquery"),
-			$this->version);
+		wp_enqueue_script($this->plugin_slug . "-plugin-angular", "//ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js", array("jquery"), $this->version);
+		wp_enqueue_script($this->plugin_slug . "-plugin-script", plugins_url("js/custom-post-edit.js", __FILE__), array("jquery"), $this->version);
 	}
 
 	/**
@@ -214,6 +219,46 @@ class customPostEdit{
 	 */
 	public function display_plugin_admin_page() {
 		include_once("views/admin.php");
+	}
+	/**
+	 * Include our short code form 
+	 */
+	public function post_edit(){
+		    ob_start();
+
+         	include_once("includes/customedit.php");
+         	
+         	return ob_get_clean();
+	}
+
+	/**
+	 * Edit post function endpoint
+	 */
+	public function post_edit_fac(){
+		//Ok here we get the values postsed to this end point
+		$request_body = file_get_contents( 'php://input' );
+        $decodeit     = json_decode( $request_body );
+        //assign them to variables
+        $jobID = $decodeit->jobID;
+        $title = $decodeit->title;
+        $jobcontent = $decodeit->jobcontent;//may need to be html encoded or similar... 
+        $monthlysalary = $decodeit->monthlysalary;
+        // Update post available fields you can update via here can be found: http://codex.wordpress.org/Database_Description#Table:_wp_posts
+		  $my_post = array(
+		      'ID'           => $jobID,
+		      'post_title' => $title,
+		      'post_content' => $jobcontent
+		  );
+
+		// Update the post into the database
+		wp_update_post( $my_post );
+		//now onto the meta this is a pain we need to update the meta one by one..
+		//change wpcf-monthly-salary to whichever field you want to update... 
+		update_post_meta( $jobID, 'wpcf-monthly-salary', $monthlysalary );
+        
+        var_dump($decodeit);
+
+		die();
 	}
 
 	/**
